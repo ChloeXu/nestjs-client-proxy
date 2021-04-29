@@ -1,24 +1,24 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
-  controllers: [AppController],
-  providers: [
-    {
-      provide: 'HELLO_SERVICE',
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) =>
-        ClientProxyFactory.create({
-          transport: Transport.TCP,
-          options: {
-            host: configService.get('HELLO_SERVICE_HOST'),
-            port: configService.get('HELLO_SERVICE_PORT'),
+  imports: [
+    ClientsModule.register([
+      {
+        name: 'HELLO_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'cats_queue',
+          queueOptions: {
+            durable: false,
           },
-        }),
-    },
+        },
+      },
+    ]),
   ],
+  controllers: [AppController],
+  providers: [],
 })
 export class AppModule {}
