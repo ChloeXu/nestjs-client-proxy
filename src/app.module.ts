@@ -1,24 +1,32 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
+  // *************** Approach 1 Start *****************
   imports: [
     ClientsModule.register([
       {
         name: 'HELLO_SERVICE',
-        transport: Transport.RMQ,
+        transport: Transport.KAFKA,
         options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'cats_queue',
-          queueOptions: {
-            durable: false,
+          client: {
+            clientId: 'kafka-client',
+            brokers: ['localhost:9092'],
+          },
+          consumer: {
+            groupId: 'kafka-consumer',
           },
         },
       },
     ]),
   ],
+  // *************** Approach 1 End *****************
+  // *************** Approach 2 Start *****************
+  // imports: [],
+  // *************** Approach 2 End *****************
   controllers: [AppController],
-  providers: [],
+  providers: [AppService],
 })
 export class AppModule {}

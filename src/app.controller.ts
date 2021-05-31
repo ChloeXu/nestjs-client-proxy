@@ -1,13 +1,37 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 
-@Controller('hello')
+@Controller()
 export class AppController {
-  constructor(@Inject('HELLO_SERVICE') private client: ClientProxy) {}
+  // *************** Approach 1 Start *****************
+  constructor(@Inject('HELLO_SERVICE') private client: ClientKafka) {}
+  // *************** Approach 1 End *****************
 
-  @Get(':name')
-  getHelloByName(@Param('name') name = 'there') {
-    // Forwards the name to our hello service, and returns the results
-    return this.client.send({ cmd: 'hello' }, { name });
+  // *************** Approach 2 Start *****************
+  //   constructor(private readonly appService: AppService) {}
+
+  //   @Client({
+  //     transport: Transport.KAFKA,
+  //     options: {
+  //       client: {
+  //         clientId: 'kafkaSample',
+  //         brokers: ['localhost:9092'],
+  //       },
+  //       consumer: {
+  //         groupId: 'my-kafka-consumer', // Should be the same thing we give in consumer
+  //       },
+  //     },
+  //   })
+  //   client: ClientKafka;
+  // *************** Approach 2 End *****************
+
+  async onModuleInit() {
+    this.client.subscribeToResponseOf('my-first-topic');
+    await this.client.connect();
+  }
+
+  @Get()
+  getHello() {
+    return this.client.send('my-first-topic', 'Hello Kafka'); // args - topic, message
   }
 }
